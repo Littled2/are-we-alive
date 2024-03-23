@@ -89,7 +89,7 @@ end
 # ON START:
 # Sync with network
 
-sync_state_with_network
+# sync_state_with_network
 
 
 
