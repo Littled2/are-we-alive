@@ -71,11 +71,25 @@ server.mount_proc '/sync' do |req, res|
 end
 
 
+server.mount_proc '/push' do |req, res|
+    if req.request_method == 'POST'
+
+        res.body = req.body.read
+        # res.body = ['Received a POST request']
+
+      else
+        res.status = 405
+        res['Allow'] = 'POST'
+        res.body = ['Method Not Allowed']
+      end
+end
+
+
 
 # ON START:
 # Sync with network
 
-# sync_state_with_network
+sync_state_with_network
 
 
 
