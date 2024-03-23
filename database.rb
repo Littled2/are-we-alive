@@ -91,7 +91,7 @@ def db_state
     if res[0][0] == nil
         return -1
     else
-        return rows[0][0]
+        return res[0][0]
     end
 end
 
