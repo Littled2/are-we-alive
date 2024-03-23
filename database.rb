@@ -1,4 +1,5 @@
 require "sqlite3"
+require "json"
 
 require_relative "user_input"
 require_relative "status.rb"
@@ -55,9 +56,8 @@ def get_nodes
         server = {
             "id" => row[0],
             "name" => row[1],
-            "desc" => row[2],
-            "address" => row[3],
-            "port" => row[4]
+            "host" => row[2],
+            "port" => row[3]
         }
 
         servers << server
@@ -83,19 +83,23 @@ def edit_node(id, name, desc, address)
 end
 
 
+# Returns the state of the local database
 def db_state
-    # THIS NEEDS A DEFAULT STATE OF -1
-    rows = $db.execute("SELECT MAX(id) as state FROM nodes_changes")
 
-    if rows.length === 0
+    res = $db.execute("SELECT MAX(id) as state FROM nodes_changes")
+
+    if res[0][0] == nil
         return -1
-    else 
-        return rows[0]
+    else
+        return rows[0][0]
     end
 end
 
 
 def sync_state_with_network
+
+    puts "Syncing node with network"
+
     nodes = get_nodes
 
     to_sync_with = {
@@ -106,16 +110,22 @@ def sync_state_with_network
 
     # are there any nodes in the database?
     if nodes.length === 0
+        puts "No existing nodes!"
         to_sync_with["host"] = gets_string("Please input the hostname of an existing node:")
         to_sync_with["port"] = gets_string("Please input the port for this hostname:")
     else
         random_node = nodes.sample
+        puts "Existing node detected. Using host:" + random_node["host"] + " port:" + random_node["port"]
         to_sync_with["host"] = random_node["host"]
         to_sync_with["port"] = random_node["port"]
     end
 
+    puts "Gettign sync data from host:" + to_sync_with["host"] + " port:" + to_sync_with["port"]
+
+    current_state = db_state
+
     # Now we have a node, we need to ask the node for their status
-    puts network_changes_since_state(db_state, to_sync_with["host"], to_sync_with["port"])
+    puts network_changes_since_state(current_state, to_sync_with["host"], to_sync_with["port"])
 
 end
 
@@ -127,7 +137,7 @@ end
 
 # Get changes to db since current state
 def network_changes_since_state(state, host, port)
-    response = Net::HTTP.get_response("http://" + host, "/sync?state=" + state.to_s, port = port).body
+    response = Net::HTTP.get_response(host, path = "/sync?state=" + state.to_s, port = port).body
     return JSON.parse(response)
 end
 
