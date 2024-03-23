@@ -8,7 +8,7 @@ require_relative "security"
 
 
 
-server = WEBrick::HTTPServer.new(Port: 2500)
+server = WEBrick::HTTPServer.new(Port: 2499)
 
 
 
@@ -74,8 +74,24 @@ end
 server.mount_proc '/push' do |req, res|
     if req.request_method == 'POST'
 
-        res.body = req.body.read
-        # res.body = ['Received a POST request']
+        change = JSON.parse(req.body)
+
+        puts "Recived change id:" + change["id"]
+        
+        # Has this change already been appplied?
+        if db_state < change["id"]
+
+            # Apply the change locally
+            apply_change(change["id"], change["action"], change["data"])
+
+            push_change(change["id"], change["action"], change["data"])
+
+            res.body = "Change applied"
+        else
+            # Change has already been applied
+            res.body = "Change already applied"
+        end
+        
 
       else
         res.status = 405
@@ -83,7 +99,6 @@ server.mount_proc '/push' do |req, res|
         res.body = ['Method Not Allowed']
       end
 end
-
 
 
 # ON START:

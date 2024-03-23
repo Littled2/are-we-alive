@@ -207,11 +207,34 @@ end
 
 # Sync the rest of the cluster with a recent change
 def push_change(id, action, data)
-    # Push to all nodes
 
     nodes = get_nodes
 
     nodes.each do |node|
-        
+        begin
+            puts "Pushing change to #{node["host"]}:#{node["port"]}"
+            push_change_to_node(node["host"], node["port"], id, action, data)
+        rescue => error
+            puts "Error whilst pushing change to #{node["host"]}:#{node["port"]}"
+            puts error
+        end
     end
+end
+
+
+# Push change to specific node
+def push_change_to_node(host, port, id, action, data)
+
+    puts "Pushing changes to host:" + host + " port:" + port
+
+    json_data = {
+            "id" => id,
+            "action" => action,
+            "data" => data
+    }.to_json
+
+    response = Net::HTTP.post(host, port, json_data, 'Content-Type' => 'application/json')
+
+    puts response
+
 end
