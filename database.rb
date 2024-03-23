@@ -104,28 +104,44 @@ def sync_state_with_network
 
     to_sync_with = {
         "name" => "unknown node",
-        "host" => "",
-        "port" => ""
+        "host" => "127.0.0.1",
+        "port" => "2500"
     }
 
     # are there any nodes in the database?
-    if nodes.length === 0
-        puts "No existing nodes!"
-        to_sync_with["host"] = gets_string("Please input the hostname of an existing node:")
-        to_sync_with["port"] = gets_string("Please input the port for this hostname:")
-    else
-        random_node = nodes.sample
-        puts "Existing node detected. Using host:" + random_node["host"] + " port:" + random_node["port"]
-        to_sync_with["host"] = random_node["host"]
-        to_sync_with["port"] = random_node["port"]
-    end
+    # if nodes.length === 0
+    #     puts "No existing nodes!"
+    #     to_sync_with["host"] = gets_string("Please input the hostname of an existing node:")
+    #     to_sync_with["port"] = gets_string("Please input the port for this hostname:")
+    # else
+    #     random_node = nodes.sample
+    #     puts "Existing node detected. Using host:" + random_node["host"] + " port:" + random_node["port"]
+    #     to_sync_with["host"] = random_node["host"]
+    #     to_sync_with["port"] = random_node["port"]
+    # end
 
     puts "Gettign sync data from host:" + to_sync_with["host"] + " port:" + to_sync_with["port"]
 
     current_state = db_state
 
     # Now we have a node, we need to ask the node for their status
-    puts network_changes_since_state(current_state, to_sync_with["host"], to_sync_with["port"])
+    changes = network_changes_since_state(current_state, to_sync_with["host"], to_sync_with["port"])
+
+    puts "Changes detected: " + changes.length.to_s
+
+    changes.each do |change|
+        begin
+            puts "Applying change id: " + change[0].to_s
+
+            apply_change(change[0], change[1], change[2])
+        rescue => error
+            puts "ERROR APPLYING CHANGES, CANNOT CONTINUE"
+            puts error
+            throw "sync_failed"
+        end
+    end
+
+    puts "Sync OK :)"
 
 end
 
@@ -142,15 +158,20 @@ def network_changes_since_state(state, host, port)
 end
 
 
-def apply_change(change_id, action, data)
+def apply_change(change_id, action, raw_data)
+
+    parsed_data = JSON.parse(raw_data)
 
     if action == "CREATE"
-        apply_create_change(data["name"], data["host"], data["port"])
+        apply_create_change(parsed_data["name"], parsed_data["host"], parsed_data["port"])
     elsif action == "UPDATE"
-        apply_update_change(data["id"], data["name"], data["host"], data["port"])
+        apply_update_change(parsed_data["id"], parsed_data["name"], parsed_data["host"], parsed_data["port"])
     elsif action == "DELETE"
-        apply_delete_change(data["id"])
+        apply_delete_change(parsed_data["id"])
     end
+
+    # Record the change
+    record_change(change_id, action, raw_data)
 end
 
 
@@ -179,5 +200,18 @@ def record_change(id, action, data)
         $db.execute("INSERT INTO nodes_changes ( id, action, data ) VALUES ( ?, ?, ? )", id, action, data)
     else
         $db.execute("INSERT INTO nodes_changes ( action, data ) VALUES ( ?, ? )", action, data)
+    end
+end
+
+
+
+# Sync the rest of the cluster with a recent change
+def push_change(id, action, data)
+    # Push to all nodes
+
+    nodes = get_nodes
+
+    nodes.each do |node|
+        
     end
 end
