@@ -235,6 +235,6 @@ def push_change_to_node(host, port, id, action, data)
 
     response = Net::HTTP.post(host, port, json_data, 'Content-Type' => 'application/json')
 
-    puts response
+    puts "Pushed change id:#{id} to #{host}:#{port} OK"
 
 end

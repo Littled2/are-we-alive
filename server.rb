@@ -76,7 +76,7 @@ server.mount_proc '/push' do |req, res|
 
         change = JSON.parse(req.body)
 
-        puts "Recived change id:" + change["id"]
+        puts "Recived change id:" + change["id"].to_s
         
         # Has this change already been appplied?
         if db_state < change["id"]
