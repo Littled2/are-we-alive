@@ -8,7 +8,7 @@ require_relative "security"
 
 
 
-server = WEBrick::HTTPServer.new(Port: 2499)
+server = WEBrick::HTTPServer.new(Port: 2500)
 
 
 
@@ -104,7 +104,7 @@ end
 # ON START:
 # Sync with network
 
-sync_state_with_network
+# sync_state_with_network
 
 
 
