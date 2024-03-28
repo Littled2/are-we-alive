@@ -1,9 +1,8 @@
-require 'terminal-table'
+# require 'terminal-table'
 
 require_relative "status"
 require_relative "database"
 
-sync_state_with_network
 
 
 # Print the status of the network
@@ -23,11 +22,9 @@ def print_cluster_status
             server["status"]
         ]
     end
-    
-    table = Terminal::Table.new :rows => formatted
 
-    puts table
+    formatted.each do |row|
+        puts row
+    end
 
 end
-
-print_cluster_status
