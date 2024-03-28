@@ -5,7 +5,7 @@ require 'json'
 
 runmode = ARGV.first
 
-if runmode == nil || (runmode != "--server" && runmode != "--client")
+if runmode == nil || (runmode != "server" && runmode != "client")
     puts "No/invalid runmode specified! Please pass either --server or --client as an argument"
     exit
 end
@@ -16,13 +16,14 @@ puts "Running in " + runmode + " mode"
 require_relative "status"
 require_relative "database"
 require_relative "security"
+require_relative "user_input"
 require_relative "user_output"
 
 
 
 
 
-server = WEBrick::HTTPServer.new(Port: 2499)
+server = WEBrick::HTTPServer.new(Port: 2500)
 
 
 
@@ -115,14 +116,19 @@ server.mount_proc '/push' do |req, res|
 end
 
 
-# ON START:
-# Sync with network
-
-sync_state_with_network
-
 
 # If server, listen for requests
-if runmode == "--server"
+if runmode == "server"
+
+    puts "serverrrrrrr"
+    
+    is_first_node = gets_bool? "Is this the first node in the cluster?"
+
+    if !is_first_node
+
+        sync_state_with_network
+
+    end
 
     trap('INT') { server.shutdown }
 
@@ -133,6 +139,9 @@ end
 
 
 # If client, get node status
-if runmode == "--client"
+if runmode == "client"
+
+    sync_state_with_network
+
     print_cluster_status
 end

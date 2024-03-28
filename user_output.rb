@@ -1,4 +1,4 @@
-require 'terminal-table'
+# require 'terminal-table'
 
 require_relative "status"
 require_relative "database"
@@ -22,8 +22,8 @@ def print_cluster_status
         ]
     end
 
-    table = Terminal::Table.new :rows => formatted
-
-    puts table
+    formatted.each do |row|
+        puts row
+    end
 
 end
