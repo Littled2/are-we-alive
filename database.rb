@@ -104,29 +104,40 @@ def sync_state_with_network
         "port" => ""
     }
 
-    # Are there any nodes in the database?
-    if nodes.length === 0
-        puts "No existing nodes!"
-        to_sync_with["host"] = gets_string("Please input the hostname of an existing node:")
-        to_sync_with["port"] = gets_string("Please input the port for this hostname:")
-    else
-        random_node = nodes.sample
-        puts "Existing node detected. Using host:" + random_node["host"] + " port:" + random_node["port"]
-        to_sync_with["host"] = random_node["host"]
-        to_sync_with["port"] = random_node["port"]
-    end
 
     puts "Gettign sync data from host:" + to_sync_with["host"] + " port:" + to_sync_with["port"]
 
     current_state = db_state
 
-    begin
-        # Now we have a node, we need to ask the node for their status
-        changes = network_changes_since_state(current_state, to_sync_with["host"], to_sync_with["port"])  
-    rescue
-        puts "Error syncing state with network"
-        exit
+    synced = false
+    sample_index = 0
+
+    while !synced
+
+        # Are there any nodes in the database?
+        if nodes.length === 0
+            puts "No existing nodes!"
+            to_sync_with["host"] = gets_string("Please input the hostname of an existing node:")
+            to_sync_with["port"] = gets_string("Please input the port for this hostname:")
+        else
+            random_node = nodes[sample_index]
+            puts "Existing node detected. Using host:" + random_node["host"] + " port:" + random_node["port"]
+            to_sync_with["host"] = random_node["host"]
+            to_sync_with["port"] = random_node["port"]
+        end
+
+        begin
+            changes = network_changes_since_state(current_state, to_sync_with["host"], to_sync_with["port"])
+            synced = true
+            sample_index += 1
+        rescue => error
+            puts "Error syncing with network"
+            puts error
+            throw "sync_failed"
+        end
+        
     end
+    
     
 
     puts "Changes detected: " + changes.length.to_s

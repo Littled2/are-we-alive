@@ -144,4 +144,7 @@ if runmode == "client"
     sync_state_with_network
 
     print_cluster_status
+    
+    exit
+
 end
