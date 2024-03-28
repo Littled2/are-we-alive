@@ -2,13 +2,27 @@ require "sqlite3"
 require "webrick"
 require 'json'
 
+
+runmode = ARGV.first
+
+if runmode == nil || (runmode != "--server" && runmode != "--client")
+    puts "No/invalid runmode specified! Please pass either --server or --client as an argument"
+    exit
+end
+
+puts "Running in " + runmode + " mode"
+
+
 require_relative "status"
 require_relative "database"
 require_relative "security"
+require_relative "user_output"
 
 
 
-server = WEBrick::HTTPServer.new(Port: 2500)
+
+
+server = WEBrick::HTTPServer.new(Port: 2499)
 
 
 
@@ -104,15 +118,21 @@ end
 # ON START:
 # Sync with network
 
-# sync_state_with_network
+sync_state_with_network
+
+
+# If server, listen for requests
+if runmode == "--server"
+
+    trap('INT') { server.shutdown }
+
+    server.start
+
+end
 
 
 
-trap('INT') { server.shutdown }
-
-server.start
-
-
-
-
-
+# If client, get node status
+if runmode == "--client"
+    print_cluster_status
+end

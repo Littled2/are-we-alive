@@ -2,7 +2,7 @@ require "sqlite3"
 require "json"
 
 require_relative "user_input"
-require_relative "status.rb"
+require_relative "status"
 
 
 $db = SQLite3::Database.new 'data.db'
@@ -23,8 +23,6 @@ $db.execute <<~SQL
 
 SQL
 
-puts "nodes table OK"
-
 $db.execute <<~SQL
 
     CREATE TABLE IF NOT EXISTS `nodes_changes` (
@@ -34,8 +32,6 @@ $db.execute <<~SQL
     )
 
 SQL
-
-puts "nodes_changes table OK"
 
 
 
@@ -104,28 +100,34 @@ def sync_state_with_network
 
     to_sync_with = {
         "name" => "unknown node",
-        "host" => "127.0.0.1",
-        "port" => "2500"
+        "host" => "",
+        "port" => ""
     }
 
-    # are there any nodes in the database?
-    # if nodes.length === 0
-    #     puts "No existing nodes!"
-    #     to_sync_with["host"] = gets_string("Please input the hostname of an existing node:")
-    #     to_sync_with["port"] = gets_string("Please input the port for this hostname:")
-    # else
-    #     random_node = nodes.sample
-    #     puts "Existing node detected. Using host:" + random_node["host"] + " port:" + random_node["port"]
-    #     to_sync_with["host"] = random_node["host"]
-    #     to_sync_with["port"] = random_node["port"]
-    # end
+    # Are there any nodes in the database?
+    if nodes.length === 0
+        puts "No existing nodes!"
+        to_sync_with["host"] = gets_string("Please input the hostname of an existing node:")
+        to_sync_with["port"] = gets_string("Please input the port for this hostname:")
+    else
+        random_node = nodes.sample
+        puts "Existing node detected. Using host:" + random_node["host"] + " port:" + random_node["port"]
+        to_sync_with["host"] = random_node["host"]
+        to_sync_with["port"] = random_node["port"]
+    end
 
     puts "Gettign sync data from host:" + to_sync_with["host"] + " port:" + to_sync_with["port"]
 
     current_state = db_state
 
-    # Now we have a node, we need to ask the node for their status
-    changes = network_changes_since_state(current_state, to_sync_with["host"], to_sync_with["port"])
+    begin
+        # Now we have a node, we need to ask the node for their status
+        changes = network_changes_since_state(current_state, to_sync_with["host"], to_sync_with["port"])  
+    rescue
+        puts "Error syncing state with network"
+        exit
+    end
+    
 
     puts "Changes detected: " + changes.length.to_s
 
@@ -224,8 +226,6 @@ end
 
 # Push change to specific node
 def push_change_to_node(host, port, id, action, data)
-
-    puts "Pushing changes to host:" + host + " port:" + port
 
     json_data = {
             "id" => id,
