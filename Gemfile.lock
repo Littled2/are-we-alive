@@ -1,0 +1,27 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    json (2.7.1)
+    macaddr (1.7.2)
+      systemu (~> 2.6.5)
+    net-http (0.4.1)
+      uri
+    rainbow (3.1.1)
+    sqlite3 (1.7.3-x64-mingw-ucrt)
+    systemu (2.6.5)
+    uri (0.13.0)
+    webrick (1.8.1)
+
+PLATFORMS
+  x64-mingw-ucrt
+
+DEPENDENCIES
+  json
+  macaddr
+  net-http
+  rainbow
+  sqlite3
+  webrick
+
+BUNDLED WITH
+   2.5.7

@@ -12,18 +12,33 @@ end
 
 puts "Running in " + runmode + " mode"
 
-
 require_relative "status"
 require_relative "database"
 require_relative "security"
 require_relative "user_input"
 require_relative "user_output"
+require_relative "cluster.rb"
+
+
+# Get config info
+
+cluster_info = nil
+
+if !File.exist?(Dir.pwd << "/cluster_info.json")
+    puts "cluster_info.json file does not exist! This must be in the root directory"
+    exit
+end
+
+begin
+    cluster_info = read_cluster_info
+rescue
+    puts "Error reading + parsing cluster_info.json file"
+    exit
+end
 
 
 
-
-
-server = WEBrick::HTTPServer.new(Port: 2500)
+server = WEBrick::HTTPServer.new(Port: cluster_info["my_port"])
 
 
 
@@ -119,8 +134,6 @@ end
 
 # If server, listen for requests
 if runmode == "server"
-
-    puts "serverrrrrrr"
     
     is_first_node = gets_bool? "Is this the first node in the cluster?"
 
@@ -129,6 +142,10 @@ if runmode == "server"
         sync_state_with_network
 
     end
+
+    # Has this node been added before?
+    add_self_if_not_in_db(cluster_info["my_name"], cluster_info["my_host"], cluster_info["my_port"])
+    
 
     trap('INT') { server.shutdown }
 

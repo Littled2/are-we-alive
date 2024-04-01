@@ -73,12 +73,6 @@ end
 
 
 
-def edit_node(id, name, desc, address)
-    $db.execute('UPDATE nodes SET name = ?, desc = ?, address = ? WHERE id = ?', name, desc, address)
-    $db.execute('INSERT INTO nodes_changes (action, data) VALUES (?, ?)', "UPDATE", "DATA BLOB HERE")
-end
-
-
 # Returns the state of the local database
 def db_state
 
@@ -251,3 +245,39 @@ def push_change_to_node(host, port, id, action, data)
     puts "Pushed change id:#{id} to #{host}:#{port} OK"
 
 end
+
+
+
+def add_node(name, host, port)
+
+    # Add the node
+    $db.execute("INSERT INTO nodes ( name, host, port ) VALUES ( ?, ?, ? )", name, host, port)
+
+    data = {
+        "name" => name,
+        "host" => host,
+        "port" => port
+    }
+
+    # Record the change
+    $db.execute("INSERT INTO nodes_changes ( action, data ) VALUES ( ?, ? )", "CREATE", data.to_json)
+
+    # Push changes out to other nodes
+    push_change($db.last_insert_row_id, "CREATE", data.to_json)
+
+end
+
+
+
+def add_self_if_not_in_db(name, host, port)
+
+    # Check if already exists in db
+    result = $db.execute("SELECT * FROM nodes WHERE host = ? AND port = ?", host, port)
+
+    if result.length > 0
+        return
+    end
+
+    add_node(name, host, port)
+end
+
