@@ -5,8 +5,8 @@ require 'json'
 
 runmode = ARGV.first
 
-if runmode == nil || (runmode != "server" && runmode != "client")
-    puts "No/invalid runmode specified! Please pass either server or client as an argument"
+if runmode == nil || (runmode != "server" && runmode != "status")
+    puts "No/invalid runmode specified! Please pass either server or status as an argument"
     exit
 end
 
@@ -155,8 +155,8 @@ end
 
 
 
-# If client, get node status
-if runmode == "client"
+# If status, get node status
+if runmode == "status"
 
     sync_state_with_network
 

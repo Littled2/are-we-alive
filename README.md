@@ -1,6 +1,42 @@
 # are-we-alive
 
-A simple diagnostics tool for assessing the status of multiple servers, running on the same or different networks.
+A simple tool for quickly assessing the status of multiple servers, within a cluster.
+
+## Quick Start
+
+### Prerequisites
+- *Ruby must be installed on the nodes for are-we-alive to run.*
+- Before running are-we-alive, you must add a `cluster_info.json` file. This is where we define the hostname, port and name of a node.
+
+The `cluster_info.json` file must contain the following properties:
+```json
+{
+    "my_name": "<node_name>",
+    "my_host": "<hostname>",
+    "my_port": "<port>"
+}
+```
+Adapt these for your use case.
+
+
+### Running in `server` mode
+The `server` mode is used for nodes that exist on your cluster. To run are-we-alive in `server` mode, clone the repo to the node machine, navigate into the repo directory and then run the command:
+```
+ruby ./main.rb server
+```
+The software will ask you if this is the first node in a cluster or not. Follow the prompts wo wither sync the node with an existing cluster or set up a new one.
+
+### Running in `status` mode
+`status` mode is used to check the status of each node in a cluster. When run in this mode, are-we-alive will output a table displaying the statuses of each node in the cluster.
+
+To run are-we-alive in `status` mode, run the command:
+```
+ruby ./main.rb status
+```
+
+Example output:
+
+
 
 
 ## How it works
