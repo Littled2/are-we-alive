@@ -3,6 +3,7 @@ require "json"
 
 require_relative "user_input"
 require_relative "status"
+require_relative "cluster"
 
 
 $db = SQLite3::Database.new 'data.db'
@@ -114,6 +115,7 @@ def sync_state_with_network
             to_sync_with["host"] = gets_string("Please input the hostname of an existing node:")
             to_sync_with["port"] = gets_string("Please input the port for this hostname:")
         else
+            # If there are exsisting nodes, try and sync with each
             random_node = nodes[sample_index]
             puts "Existing node detected. Using host:" + random_node["host"] + " port:" + random_node["port"]
             to_sync_with["host"] = random_node["host"]
@@ -127,7 +129,7 @@ def sync_state_with_network
         rescue => error
             puts "Error syncing with network"
             puts error
-            throw "sync_failed"
+            sample_index += 1
         end
         
     end
@@ -215,15 +217,19 @@ end
 # Sync the rest of the cluster with a recent change
 def push_change(id, action, data)
 
+    my_info = read_cluster_info
     nodes = get_nodes
 
     nodes.each do |node|
-        begin
-            puts "Pushing change to #{node["host"]}:#{node["port"]}"
-            push_change_to_node(node["host"], node["port"], id, action, data)
-        rescue => error
-            puts "Error whilst pushing change to #{node["host"]}:#{node["port"]}"
-            puts error
+
+        if(!(node["host"] == my_info["my_host"] && node["port"] == my_info["my_port"]))
+            begin
+                puts "Pushing change to #{node["host"]}:#{node["port"]}"
+                push_change_to_node(node["host"], node["port"], id, action, data)
+            rescue => error
+                puts "Error whilst pushing change to #{node["host"]}:#{node["port"]}"
+                puts error
+            end
         end
     end
 end

@@ -6,7 +6,7 @@ require 'json'
 runmode = ARGV.first
 
 if runmode == nil || (runmode != "server" && runmode != "client")
-    puts "No/invalid runmode specified! Please pass either --server or --client as an argument"
+    puts "No/invalid runmode specified! Please pass either server or client as an argument"
     exit
 end
 

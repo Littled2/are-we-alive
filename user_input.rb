@@ -27,7 +27,7 @@ def gets_bool?(prompt)
     valid = false
 
     while !valid
-        input = STDIN.gets.chomp
+        input = STDIN.gets.chomp.upcase
 
         if input == "Y" || input == "YES"
             return true
